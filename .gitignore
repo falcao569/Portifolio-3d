@@ -1,0 +1,11 @@
+# Dependências
+node_modules/
+.vite/
+
+# Build output
+dist/
+build/
+
+# Sistema
+.DS_Store
+thumbs.db
