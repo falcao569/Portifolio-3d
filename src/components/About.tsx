@@ -1,5 +1,5 @@
 import { motion, useScroll, useTransform } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Coffee, Award, Users, Calendar, Code2, Zap, Terminal } from 'lucide-react';
 
 const stats = [
@@ -18,126 +18,281 @@ const skills = [
   { name: 'SEO', level: 85, color: '#10B981' }
 ];
 
-// Avatar 3D reimaginado
-function ModernAvatar() {
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
+// Avatar 3D - Boneco programando que olha para o cursor
+function Programmer3D() {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        // Normalizar posição do mouse em relação ao centro
+        const x = (e.clientX - centerX) / (rect.width / 2);
+        const y = (e.clientY - centerY) / (rect.height / 2);
+        
+        setMousePosition({ x, y });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Calcular rotação da cabeça baseado na posição do mouse
+  const headRotateY = mousePosition.x * 15;
+  const headRotateX = -mousePosition.y * 10;
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
+    <div ref={containerRef} className="relative w-full h-full flex items-center justify-center">
       <motion.div
-        className="relative"
-        onMouseMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const x = (e.clientY - rect.top - rect.height / 2) / 20;
-          const y = (e.clientX - rect.left - rect.width / 2) / 20;
-          setRotation({ x, y });
-        }}
-        onMouseLeave={() => setRotation({ x: 0, y: 0 })}
+        className="relative w-80 h-80"
         style={{
           transformStyle: 'preserve-3d',
           perspective: '1000px'
         }}
-        animate={{
-          rotateX: rotation.x,
-          rotateY: rotation.y
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 100,
-          damping: 20
-        }}
       >
-        {/* Main avatar container */}
-        <motion.div
-          className="relative w-72 h-72 rounded-3xl backdrop-blur-2xl border overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(30, 58, 138, 0.1))',
-            borderColor: 'rgba(56, 189, 248, 0.2)',
-            boxShadow: '0 20px 60px rgba(56, 189, 248, 0.2)'
-          }}
-        >
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#38BDF8]/10 via-transparent to-[#1E3A8A]/10" />
-          
-          {/* Code symbols background */}
-          <div className="absolute inset-0">
-            {['<>', '{}', '/>', '( )', '[ ]'].map((symbol, i) => (
-              <motion.div
-                key={i}
-                className="absolute font-mono text-[#38BDF8]/20 text-lg"
-                style={{
-                  left: `${20 + (i % 3) * 30}%`,
-                  top: `${20 + Math.floor(i / 3) * 30}%`
-                }}
-                animate={{
-                  opacity: [0.1, 0.3, 0.1],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.4
-                }}
-              >
-                {symbol}
-              </motion.div>
-            ))}
-          </div>
+        {/* Container do boneco */}
+        <div className="relative w-full h-full">
+          {/* Mesa/Desk */}
+          <motion.div
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 w-64 h-3 rounded-full"
+            style={{
+              background: 'linear-gradient(90deg, rgba(56, 189, 248, 0.3), rgba(30, 58, 138, 0.3))',
+              boxShadow: '0 10px 40px rgba(56, 189, 248, 0.2)'
+            }}
+            animate={{
+              scaleX: [1, 1.05, 1]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          />
 
-          {/* Center emoji */}
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Computador/Laptop */}
+          <motion.div
+            className="absolute bottom-20 left-1/2 -translate-x-1/2"
+            animate={{
+              rotateX: [0, 2, 0]
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+            style={{
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            {/* Tela do laptop */}
+            <div
+              className="w-40 h-24 rounded-lg border-2 border-[#38BDF8]/40 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(30, 58, 138, 0.2))',
+                boxShadow: '0 0 30px rgba(56, 189, 248, 0.3)'
+              }}
+            >
+              {/* Linhas de código na tela */}
+              {[0, 1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  className="h-1.5 bg-[#38BDF8]/60 rounded-full mx-2 mb-1.5"
+                  style={{ marginTop: i === 0 ? '8px' : '0' }}
+                  initial={{ width: '0%' }}
+                  animate={{
+                    width: ['0%', `${60 + Math.random() * 30}%`, `${60 + Math.random() * 30}%`]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3
+                  }}
+                />
+              ))}
+              
+              {/* Brilho da tela */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#38BDF8]/10 to-transparent" />
+            </div>
+
+            {/* Base do laptop */}
+            <div
+              className="w-40 h-2 mt-0.5 rounded-b-lg"
+              style={{
+                background: 'rgba(56, 189, 248, 0.15)',
+                borderLeft: '2px solid rgba(56, 189, 248, 0.3)',
+                borderRight: '2px solid rgba(56, 189, 248, 0.3)',
+                borderBottom: '2px solid rgba(56, 189, 248, 0.3)'
+              }}
+            />
+          </motion.div>
+
+          {/* Corpo do boneco */}
+          <motion.div
+            className="absolute bottom-32 left-1/2 -translate-x-1/2"
+            animate={{
+              y: [0, -3, 0]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+            style={{
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            {/* Cabeça */}
             <motion.div
-              className="text-8xl"
+              className="relative w-20 h-20 rounded-full mb-2 mx-auto"
+              style={{
+                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(30, 58, 138, 0.3))',
+                border: '2px solid rgba(56, 189, 248, 0.5)',
+                boxShadow: '0 0 30px rgba(56, 189, 248, 0.4)',
+                transformStyle: 'preserve-3d'
+              }}
               animate={{
-                scale: [1, 1.05, 1]
+                rotateY: headRotateY,
+                rotateX: headRotateX
               }}
               transition={{
-                duration: 3,
+                type: 'spring',
+                stiffness: 100,
+                damping: 15
+              }}
+            >
+              {/* Rosto - Olhos que seguem o cursor */}
+              <div className="absolute inset-0 flex items-center justify-center gap-4">
+                {/* Olho esquerdo */}
+                <motion.div
+                  className="w-3 h-3 rounded-full bg-[#38BDF8]"
+                  style={{
+                    boxShadow: '0 0 10px rgba(56, 189, 248, 0.8)'
+                  }}
+                  animate={{
+                    x: mousePosition.x * 3,
+                    y: mousePosition.y * 3
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 200,
+                    damping: 15
+                  }}
+                />
+                
+                {/* Olho direito */}
+                <motion.div
+                  className="w-3 h-3 rounded-full bg-[#38BDF8]"
+                  style={{
+                    boxShadow: '0 0 10px rgba(56, 189, 248, 0.8)'
+                  }}
+                  animate={{
+                    x: mousePosition.x * 3,
+                    y: mousePosition.y * 3
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 200,
+                    damping: 15
+                  }}
+                />
+              </div>
+
+              {/* Boca sorrindo */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-6 h-2 border-b-2 border-[#38BDF8] rounded-full" />
+            </motion.div>
+
+            {/* Torso */}
+            <div
+              className="w-24 h-28 rounded-2xl mx-auto"
+              style={{
+                background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.25), rgba(30, 58, 138, 0.25))',
+                border: '2px solid rgba(56, 189, 248, 0.4)',
+                boxShadow: '0 10px 40px rgba(56, 189, 248, 0.3)'
+              }}
+            />
+
+            {/* Braços */}
+            <motion.div
+              className="absolute top-24 -left-6 w-6 h-20 rounded-full"
+              style={{
+                background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.3), rgba(30, 58, 138, 0.3))',
+                border: '2px solid rgba(56, 189, 248, 0.4)'
+              }}
+              animate={{
+                rotate: [0, -5, 0]
+              }}
+              transition={{
+                duration: 2,
                 repeat: Infinity,
                 ease: 'easeInOut'
               }}
+            />
+            <motion.div
+              className="absolute top-24 -right-6 w-6 h-20 rounded-full"
               style={{
-                filter: 'drop-shadow(0 0 30px rgba(56, 189, 248, 0.5))'
+                background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.3), rgba(30, 58, 138, 0.3))',
+                border: '2px solid rgba(56, 189, 248, 0.4)'
+              }}
+              animate={{
+                rotate: [0, 5, 0]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: 0.5
+              }}
+            />
+          </motion.div>
+
+          {/* Partículas de código flutuando */}
+          {['<>', '{}', '/>', '( )'].map((symbol, i) => (
+            <motion.div
+              key={i}
+              className="absolute font-mono text-[#38BDF8]/30 text-sm"
+              style={{
+                left: `${20 + (i % 2) * 60}%`,
+                top: `${10 + Math.floor(i / 2) * 30}%`
+              }}
+              animate={{
+                y: [0, -20, 0],
+                opacity: [0.2, 0.5, 0.2],
+                rotate: [0, 360]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                delay: i * 0.5,
+                ease: 'easeInOut'
               }}
             >
-              👨‍💻
+              {symbol}
             </motion.div>
-          </div>
+          ))}
 
-          {/* Corner accents */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[#38BDF8] opacity-10 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#1E3A8A] opacity-10 blur-3xl" />
-        </motion.div>
-
-        {/* Floating particles around avatar */}
-        {[...Array(6)].map((_, i) => (
+          {/* Efeito de brilho */}
           <motion.div
-            key={i}
-            className="absolute w-2 h-2 rounded-full bg-[#38BDF8]"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full pointer-events-none"
             style={{
-              left: '50%',
-              top: '50%',
-              boxShadow: '0 0 10px rgba(56, 189, 248, 0.8)'
+              background: 'radial-gradient(circle, rgba(56, 189, 248, 0.15), transparent 70%)',
+              filter: 'blur(30px)'
             }}
             animate={{
-              x: [
-                Math.cos((i * Math.PI * 2) / 6) * 150,
-                Math.cos((i * Math.PI * 2) / 6 + Math.PI * 2) * 150
-              ],
-              y: [
-                Math.sin((i * Math.PI * 2) / 6) * 150,
-                Math.sin((i * Math.PI * 2) / 6 + Math.PI * 2) * 150
-              ],
-              opacity: [0.3, 0.8, 0.3]
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3]
             }}
             transition={{
-              duration: 5,
+              duration: 3,
               repeat: Infinity,
-              ease: 'linear',
-              delay: i * 0.8
+              ease: 'easeInOut'
             }}
           />
-        ))}
+        </div>
       </motion.div>
     </div>
   );
@@ -263,7 +418,7 @@ export function About() {
             className="relative"
           >
             <div className="relative h-[400px] flex items-center justify-center mb-8">
-              <ModernAvatar />
+              <Programmer3D />
             </div>
 
             {/* Stats grid */}

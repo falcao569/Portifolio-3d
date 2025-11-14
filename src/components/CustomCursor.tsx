@@ -4,10 +4,23 @@ import { motion } from 'motion/react';
 export function CustomCursor() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if device is mobile/touch
+    const checkMobile = () => {
+      setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkMobile();
+
     const updateMousePosition = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const updateTouchPosition = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        setMousePosition({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      }
     };
 
     const handleMouseOver = (e: MouseEvent) => {
@@ -26,13 +39,22 @@ export function CustomCursor() {
     };
 
     window.addEventListener('mousemove', updateMousePosition);
+    window.addEventListener('touchmove', updateTouchPosition, { passive: true });
+    window.addEventListener('touchstart', updateTouchPosition, { passive: true });
     window.addEventListener('mouseover', handleMouseOver);
 
     return () => {
       window.removeEventListener('mousemove', updateMousePosition);
+      window.removeEventListener('touchmove', updateTouchPosition);
+      window.removeEventListener('touchstart', updateTouchPosition);
       window.removeEventListener('mouseover', handleMouseOver);
     };
   }, []);
+
+  // Don't show cursor if no position yet
+  if (mousePosition.x === 0 && mousePosition.y === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -42,12 +64,13 @@ export function CustomCursor() {
         animate={{
           x: mousePosition.x - 10,
           y: mousePosition.y - 10,
-          scale: isHovering ? 1.5 : 1
+          scale: isHovering ? 1.5 : 1,
+          opacity: isMobile ? 0.6 : 0.8
         }}
         transition={{
           type: 'spring',
-          stiffness: 500,
-          damping: 28,
+          stiffness: isMobile ? 300 : 500,
+          damping: isMobile ? 20 : 28,
           mass: 0.5
         }}
       >
@@ -60,12 +83,13 @@ export function CustomCursor() {
         animate={{
           x: mousePosition.x - 20,
           y: mousePosition.y - 20,
-          scale: isHovering ? 1.8 : 1
+          scale: isHovering ? 1.8 : 1,
+          opacity: isMobile ? 0.5 : 1
         }}
         transition={{
           type: 'spring',
-          stiffness: 150,
-          damping: 15,
+          stiffness: isMobile ? 100 : 150,
+          damping: isMobile ? 12 : 15,
           mass: 0.8
         }}
       >
@@ -82,11 +106,12 @@ export function CustomCursor() {
         className="fixed top-0 left-0 pointer-events-none z-[9998]"
         animate={{
           x: mousePosition.x - 2,
-          y: mousePosition.y - 2
+          y: mousePosition.y - 2,
+          opacity: isMobile ? 0.4 : 1
         }}
         transition={{
           type: 'spring',
-          stiffness: 100,
+          stiffness: isMobile ? 80 : 100,
           damping: 20
         }}
       >
